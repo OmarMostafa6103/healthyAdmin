@@ -329,7 +329,7 @@ const Categories = ({ token }) => {
                 </form>
             </div>
 
-            {/* Categories table */}
+            {/* Categories list - table on md+, cards on small screens */}
             <div className="w-full max-w-6xl">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Categories List</h2>
                 {isLoading ? (
@@ -337,7 +337,8 @@ const Categories = ({ token }) => {
                 ) : !categories || categories.length === 0 ? (
                     <p className="text-gray-500 text-center">No categories found.</p>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <>
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="min-w-full bg-white shadow-lg rounded-xl overflow-hidden">
                             <thead className="bg-indigo-50">
                                 <tr>
@@ -349,7 +350,7 @@ const Categories = ({ token }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {/* صفوف الكاتيجوري الرئيسية فقط */}
+                                {/* desktop rows */}
                                 {categories.filter((cat) => !cat.parent).map((category) => (
                                     <React.Fragment key={category.category_id}>
                                         <tr className="border-b hover:bg-gray-50 transition-colors">
@@ -374,28 +375,9 @@ const Categories = ({ token }) => {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {editCategoryId === category.category_id ? (
-                                                    <select
-                                                        onChange={(e) => setEditCategoryParent(e.target.value)}
-                                                        value={editCategoryParent}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
-                                                    >
-                                                        <option value="">No Parent</option>
-                                                        {getParentCategories().map((parentCategory) => (
-                                                            <option 
-                                                                key={parentCategory.category_id} 
-                                                                value={parentCategory.category_id}
-                                                                disabled={parentCategory.category_id === category.category_id}
-                                                            >
-                                                                {parentCategory.name}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                ) : (
-                                                    <span className="text-gray-600">
-                                                        {category.parent ? category.parent.name : "No Parent"}
-                                                    </span>
-                                                )}
+                                                <span className="text-gray-600">
+                                                    {category.parent ? category.parent.name : "No Parent"}
+                                                </span>
                                             </td>
                                             <td className="px-6 py-4">
                                                 {editCategoryId === category.category_id ? (
@@ -443,81 +425,25 @@ const Categories = ({ token }) => {
                                                 </button>
                                             </td>
                                         </tr>
-                                        {/* صفوف الكاتيجوري الفرعية إذا كانت مفتوحة */}
+                                        {/* sub rows */}
                                         {openAccordionIds.includes(category.category_id) &&
                                             getSubCategories(category.category_id).map((sub) => (
                                                 <tr key={sub.category_id} className="border-b bg-gray-50">
                                                     <td className="px-2 py-4"></td>
-                                                    <td className="px-10 py-4 text-gray-700">
-                                                        {editCategoryId === sub.category_id ? (
-                                                            <input
-                                                                onChange={(e) => setEditCategoryName(e.target.value)}
-                                                                value={editCategoryName}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
-                                                                type="text"
-                                                                placeholder="Edit category name"
-                                                            />
-                                                        ) : (
-                                                            <span>{sub.name}</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-gray-600">
-                                                        {editCategoryId === sub.category_id ? (
-                                                            <select
-                                                                onChange={(e) => setEditCategoryParent(e.target.value)}
-                                                                value={editCategoryParent}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
-                                                            >
-                                                                <option value="">No Parent</option>
-                                                                {getParentCategories().map((parentCategory) => (
-                                                                    <option 
-                                                                        key={parentCategory.category_id} 
-                                                                        value={parentCategory.category_id}
-                                                                        disabled={parentCategory.category_id === sub.category_id}
-                                                                    >
-                                                                        {parentCategory.name}
-                                                                    </option>
-                                                                ))}
-                                                            </select>
-                                                        ) : (
-                                                            <span>{sub.parent ? sub.parent.name : "No Parent"}</span>
-                                                        )}
-                                                    </td>
+                                                    <td className="px-10 py-4 text-gray-700">{sub.name}</td>
+                                                    <td className="px-6 py-4 text-gray-600">{sub.parent ? sub.parent.name : "No Parent"}</td>
                                                     <td className="px-6 py-4">
-                                                        {editCategoryId === sub.category_id ? (
-                                                            <div className="flex gap-2">
-                                                                <button
-                                                                    onClick={() => updateCategory(sub.category_id)}
-                                                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400"
-                                                                    disabled={isLoading}
-                                                                >
-                                                                    Save
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setEditCategoryId(null);
-                                                                        setEditCategoryName("");
-                                                                        setEditCategoryParent("");
-                                                                    }}
-                                                                    className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors disabled:bg-gray-400"
-                                                                    disabled={isLoading}
-                                                                >
-                                                                    Cancel
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => {
-                                                                    setEditCategoryId(sub.category_id);
-                                                                    setEditCategoryName(sub.name);
-                                                                    setEditCategoryParent(sub.parent ? sub.parent.id.toString() : "");
-                                                                }}
-                                                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400"
-                                                                disabled={isLoading}
-                                                            >
-                                                                Edit
-                                                            </button>
-                                                        )}
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditCategoryId(sub.category_id);
+                                                                setEditCategoryName(sub.name);
+                                                                setEditCategoryParent(sub.parent ? sub.parent.id.toString() : "");
+                                                            }}
+                                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400"
+                                                            disabled={isLoading}
+                                                        >
+                                                            Edit
+                                                        </button>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <button
@@ -535,6 +461,67 @@ const Categories = ({ token }) => {
                             </tbody>
                         </table>
                     </div>
+
+                    <div className="md:hidden space-y-4">
+                        {categories.filter((cat) => !cat.parent).map((category) => (
+                            <div key={category.category_id} className="bg-white shadow rounded-lg p-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-lg font-semibold text-gray-800">{category.name}</h3>
+                                            {getSubCategories(category.category_id).length > 0 && (
+                                                <button onClick={() => toggleAccordion(category.category_id)} className="text-sm text-gray-500 px-2 py-1 rounded hover:bg-gray-100">
+                                                    {openAccordionIds.includes(category.category_id) ? '▲' : '▼'}
+                                                </button>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-gray-500 mt-1">{category.parent ? category.parent.name : 'No Parent'}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        {editCategoryId === category.category_id ? (
+                                            <div className="w-full">
+                                                <input
+                                                    onChange={(e) => setEditCategoryName(e.target.value)}
+                                                    value={editCategoryName}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors mb-2"
+                                                    type="text"
+                                                    placeholder="Edit category name"
+                                                />
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => updateCategory(category.category_id)} className="flex-1 px-3 py-2 bg-green-600 text-white rounded">Save</button>
+                                                    <button onClick={() => {setEditCategoryId(null); setEditCategoryName(''); setEditCategoryParent('');}} className="flex-1 px-3 py-2 bg-gray-300 text-gray-800 rounded">Cancel</button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <button onClick={() => {setEditCategoryId(category.category_id); setEditCategoryName(category.name); setEditCategoryParent(category.parent ? category.parent.id.toString() : '');}} className="px-3 py-2 bg-indigo-600 text-white rounded-lg mb-2">Edit</button>
+                                                <button onClick={() => openDeleteModal(category)} className="px-3 py-2 bg-red-600 text-white rounded-lg">Delete</button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* subcategories accordion on mobile */}
+                                {openAccordionIds.includes(category.category_id) && (
+                                    <div className="mt-3 border-t pt-3 space-y-2">
+                                        {getSubCategories(category.category_id).map((sub) => (
+                                            <div key={sub.category_id} className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-sm font-medium">{sub.name}</p>
+                                                    <p className="text-xs text-gray-500">{sub.parent ? sub.parent.name : 'No Parent'}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => {setEditCategoryId(sub.category_id); setEditCategoryName(sub.name); setEditCategoryParent(sub.parent ? sub.parent.id.toString() : '');}} className="px-3 py-1 bg-indigo-600 text-white rounded text-xs">Edit</button>
+                                                    <button onClick={() => openDeleteModal(sub)} className="px-3 py-1 bg-red-600 text-white rounded text-xs">Delete</button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    </>
                 )}
             </div>
 
