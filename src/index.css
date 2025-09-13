@@ -1,32 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-*{
-    font-family: Outfit;
+* {
+  font-family: Outfit;
 }
 
-select,input,textarea{
-    border: 1px solid #c2c2c2;
-    outline-color: #C586A5;
-    border-radius: 4px;
+select,
+input,
+textarea {
+  border: 1px solid #c2c2c2;
+  outline-color: #c586a5;
+  border-radius: 4px;
 }
 
-.active{
-    background-color: #ffebf5;
-    border-color: #C586A5;
+.active {
+  background-color: #ffebf5;
+  border-color: #c586a5;
 }
 
 /* small-screen helpers */
 @media (max-width: 320px) {
-    body {
-        font-size: 12px;
-    }
-    .text-base { font-size: 12px; }
+  body {
+    font-size: 12px;
+  }
+  .text-base {
+    font-size: 12px;
+  }
 }
 
 /* leave space for bottom nav on small screens */
 @media (max-width: 767px) {
-    body { padding-bottom: 56px; }
+  body {
+    padding-bottom: 56px;
+  }
 }

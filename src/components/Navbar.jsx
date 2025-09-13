@@ -26,42 +26,41 @@
 
 // export default Navbar;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // استيراد useNavigate و Link للتوجيه
+import React from "react";
+import { useNavigate, Link } from "react-router-dom"; // استيراد useNavigate و Link للتوجيه
 
 const Navbar = ({ setToken, setSidebarOpen, sidebarOpen }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    setToken(''); // تعيين التوكن إلى قيمة فارغة
-    localStorage.removeItem('token'); // إزالة التوكن من localStorage
-    navigate('/login', { replace: true }); // التوجيه إلى صفحة تسجيل الدخول
+    setToken(""); // تعيين التوكن إلى قيمة فارغة
+    localStorage.removeItem("token"); // إزالة التوكن من localStorage
+    navigate("/login", { replace: true }); // التوجيه إلى صفحة تسجيل الدخول
   };
 
   return (
-    <div className='flex items-center py-2 px-4 justify-between'>
-      <div className='flex items-center gap-3'>
+    <div className="flex items-center py-2 px-4 justify-between">
+      <div className="flex items-center gap-3">
         {/* hamburger for small screens */}
         <button
-          aria-label='Toggle sidebar'
+          aria-label="Toggle sidebar"
           onClick={() => setSidebarOpen && setSidebarOpen(!sidebarOpen)}
-          className='md:hidden p-2 rounded hover:bg-gray-200'
+          className="md:hidden p-2 rounded hover:bg-gray-200"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 6H20M4 12H20M4 18H20" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4 6H20M4 12H20M4 18H20"
+              stroke="#111827"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
 
@@ -74,7 +73,7 @@ const Navbar = ({ setToken, setSidebarOpen, sidebarOpen }) => {
 
       <button
         onClick={handleLogout}
-        className='bg-gray-600 text-white px-4 py-2 rounded-full text-xs sm:text-sm'
+        className="bg-gray-600 text-white px-4 py-2 rounded-full text-xs sm:text-sm"
       >
         Logout
       </button>
