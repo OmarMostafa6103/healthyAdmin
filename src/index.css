@@ -17,3 +17,16 @@ select,input,textarea{
     background-color: #ffebf5;
     border-color: #C586A5;
 }
+
+/* small-screen helpers */
+@media (max-width: 320px) {
+    body {
+        font-size: 12px;
+    }
+    .text-base { font-size: 12px; }
+}
+
+/* leave space for bottom nav on small screens */
+@media (max-width: 767px) {
+    body { padding-bottom: 56px; }
+}
