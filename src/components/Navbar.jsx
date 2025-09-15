@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import { useState, useRef, useEffect } from "react";
 
 const languages = [
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "ar", label: "العربية", flag: "🇸🇦" },
+  { code: "en", label: "English", flag: "🇺🇸", short: "EN" },
+  { code: "ar", label: "العربية", flag: "��", short: "AR" },
 ];
 
 export default function Navbar({ setToken, setSidebarOpen, sidebarOpen }) {
@@ -89,7 +89,10 @@ export default function Navbar({ setToken, setSidebarOpen, sidebarOpen }) {
             aria-expanded={open}
           >
             <span className="text-lg">🌐</span>
-            <span className="hidden sm:inline">
+            <span className="ml-1 px-2 py-0.5 text-xs font-semibold rounded bg-gray-100 border">
+              {activeLang.short}
+            </span>
+            <span className="hidden sm:inline ml-2">
               {activeLang.flag} {activeLang.label}
             </span>
             <svg
