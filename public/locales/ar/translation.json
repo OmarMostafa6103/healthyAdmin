@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "لوحة تحكم فوريفر",
+    "addCategory": "إضافة فئة",
+    "categoryName": "اسم الفئة",
+    "parentCategory": "الفئة الأب",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "noParent": "بدون أب",
+    "confirmDelete": "تأكيد الحذف",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "adding": "جاري الإضافة...",
+    "addSuccess": "تم إضافة الفئة بنجاح",
+    "categoryList": "قائمة التصنيفات",
+    "addNewCategory": "إضافة فئة جديدة"
+  },
+  "nav": {
+    "logout": "تسجيل خروج",
+    "language": "اللغة"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "Forever Admin Panel",
+    "addCategory": "Add Category",
+    "categoryName": "Category Name",
+    "parentCategory": "Parent Category",
+    "edit": "Edit",
+    "delete": "Delete",
+    "noParent": "No Parent",
+    "confirmDelete": "Confirm Deletion",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "adding": "Adding...",
+    "addSuccess": "Category added successfully",
+    "categoryList": "Categories List",
+    "addNewCategory": "Add New Category"
+  },
+  "nav": {
+    "logout": "Logout",
+    "language": "Language"
+  }
+}
