@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import PropTypes from "prop-types";
 import axios from "axios";
-import { backendUrl } from "../App";
+import { backendUrl } from "../config";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -33,34 +34,37 @@ const Categories = ({ token }) => {
   };
 
   // Helper function to display error messages in the UI
-  const displayError = (errorDetails) => {
-    let userMessage = t("errors.generic");
-    if (errorDetails.status === 401 || errorDetails.status === 514) {
-      userMessage = t("errors.sessionExpired");
-    } else if (errorDetails.message.includes("Network Error")) {
-      userMessage = t("errors.network");
-    } else if (errorDetails.status === 422) {
-      const validationErrors = errorDetails.responseData?.errors || {};
-      userMessage =
-        Object.values(validationErrors).flat().join(", ") ||
-        t("errors.validation");
-    } else if (errorDetails.status === 500) {
-      if (errorDetails.responseData?.message?.includes("Duplicate entry")) {
-        userMessage = t("errors.categoryExists");
-      } else {
-        userMessage = `Server error: ${
-          errorDetails.responseData?.message || "Unknown server error"
-        }`;
+  const displayError = useCallback(
+    (errorDetails) => {
+      let userMessage = t("errors.generic");
+      if (errorDetails.status === 401 || errorDetails.status === 514) {
+        userMessage = t("errors.sessionExpired");
+      } else if (errorDetails.message.includes("Network Error")) {
+        userMessage = t("errors.network");
+      } else if (errorDetails.status === 422) {
+        const validationErrors = errorDetails.responseData?.errors || {};
+        userMessage =
+          Object.values(validationErrors).flat().join(", ") ||
+          t("errors.validation");
+      } else if (errorDetails.status === 500) {
+        if (errorDetails.responseData?.message?.includes("Duplicate entry")) {
+          userMessage = t("errors.categoryExists");
+        } else {
+          userMessage = `Server error: ${
+            errorDetails.responseData?.message || "Unknown server error"
+          }`;
+        }
+      } else if (errorDetails.responseData?.message) {
+        userMessage = errorDetails.responseData.message;
       }
-    } else if (errorDetails.responseData?.message) {
-      userMessage = errorDetails.responseData.message;
-    }
-    toast.error(userMessage);
-    return userMessage;
-  };
+      toast.error(userMessage);
+      return userMessage;
+    },
+    [t]
+  );
 
   // Fetch categories
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
@@ -105,7 +109,7 @@ const Categories = ({ token }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [token, displayError, navigate]);
 
   useEffect(() => {
     if (!token) {
@@ -113,7 +117,7 @@ const Categories = ({ token }) => {
       return;
     }
     fetchCategories();
-  }, [token, navigate]);
+  }, [token, navigate, fetchCategories]);
 
   // Add new category
   const addCategory = async (e) => {
@@ -287,15 +291,8 @@ const Categories = ({ token }) => {
   };
 
   // Get parent categories (categories without parents or with null parent)
-  const getParentCategories = () => {
-    return categories.filter((category) => !category.parent);
-  };
-
-  // Get category name by ID
-  const getCategoryNameById = (categoryId) => {
-    const category = categories.find((cat) => cat.category_id === categoryId);
-    return category ? category.name : "";
-  };
+  const getParentCategories = () =>
+    categories.filter((category) => !category.parent);
 
   // دالة تبديل الفتح/الإغلاق للكاتيجوري الرئيسية
   const toggleAccordion = (parentId) => {
@@ -387,7 +384,7 @@ const Categories = ({ token }) => {
                   {categories
                     .filter((cat) => !cat.parent)
                     .map((category) => (
-                      <React.Fragment key={category.category_id}>
+                      <>
                         <tr className="border-b hover:bg-gray-50 transition-colors">
                           <td
                             className="px-2 py-4 text-center cursor-pointer"
@@ -520,7 +517,7 @@ const Categories = ({ token }) => {
                               </td>
                             </tr>
                           ))}
-                      </React.Fragment>
+                      </>
                     ))}
                 </tbody>
               </table>
@@ -699,3 +696,7 @@ const Categories = ({ token }) => {
 };
 
 export default Categories;
+
+Categories.propTypes = {
+  token: PropTypes.string,
+};

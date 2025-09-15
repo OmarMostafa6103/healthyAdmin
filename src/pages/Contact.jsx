@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { backendUrl } from "../App";
+import { backendUrl } from "../config";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 
@@ -196,3 +196,8 @@ const Contact = ({ token }) => {
 };
 
 export default Contact;
+
+import PropTypes from "prop-types";
+Contact.propTypes = {
+  token: PropTypes.string,
+};

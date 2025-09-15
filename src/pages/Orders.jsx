@@ -354,11 +354,11 @@
 
 // export default Orders;
 
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { backendUrl } from "../App";
+import { backendUrl } from "../config";
 
 const Orders = ({ token }) => {
   const [orders, setOrders] = useState([]);
@@ -371,7 +371,7 @@ const Orders = ({ token }) => {
   // جلب جميع الأوردرات من الـ API عبر الصفحات
   const { t } = useTranslation();
 
-  const fetchAllOrders = async () => {
+  const fetchAllOrders = useCallback(async () => {
     if (!token) {
       toast.error(t("errors.sessionExpired"));
       return;
@@ -465,7 +465,7 @@ const Orders = ({ token }) => {
         );
       }
     }
-  };
+  }, [token, t]);
 
   // تحديث حالة الأوردر
   const statusHandler = async (event, orderId) => {
@@ -583,7 +583,7 @@ const Orders = ({ token }) => {
 
   useEffect(() => {
     fetchAllOrders();
-  }, [token]);
+  }, [token, fetchAllOrders]);
 
   const groupedOrders = groupOrdersByAccount(filteredAndSortedOrders);
   const paginatedOrders = paginateAccounts(groupedOrders);
@@ -757,3 +757,8 @@ const Orders = ({ token }) => {
 };
 
 export default Orders;
+
+import PropTypes from "prop-types";
+Orders.propTypes = {
+  token: PropTypes.string,
+};

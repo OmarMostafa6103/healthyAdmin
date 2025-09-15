@@ -391,7 +391,7 @@ import {
 } from "../redux/productFormSlice";
 import { assets } from "../assets/assets";
 import axios from "axios";
-import { backendUrl } from "../App";
+import { backendUrl } from "../config";
 import { toast } from "react-toastify";
 
 // أيقونة الحذف (SVG)
@@ -471,7 +471,6 @@ const Add = ({ token }) => {
           if (Array.isArray(parsed)) setCategories(parsed);
         } catch (err) {
           // Ignore cache parse errors but log for debugging
-          // eslint-disable-next-line no-console
           console.warn("Failed to parse categories_cache:", err);
         }
       }
@@ -526,7 +525,6 @@ const Add = ({ token }) => {
       });
     } catch (error) {
       // Log refresh errors for debugging; non-fatal for the Add flow
-      // eslint-disable-next-line no-console
       console.error("refreshProducts error:", error);
     }
   };
@@ -865,3 +863,8 @@ const Add = ({ token }) => {
 };
 
 export default Add;
+
+import PropTypes from "prop-types";
+Add.propTypes = {
+  token: PropTypes.string,
+};

@@ -1,9 +1,9 @@
 //? ========= START API ===========
 //? ========= START API ===========
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { backendUrl, currency } from "../App";
+import { backendUrl, currency } from "../config";
 import { toast } from "react-toastify";
 import Modal from "react-modal";
 import { useTranslation } from "react-i18next";
@@ -39,73 +39,76 @@ const List = ({ token }) => {
   const [productToDelete, setProductToDelete] = useState(null);
 
   // دالة جلب المنتجات
-  const fetchList = async (page = 1, retryCount = 0) => {
-    if (isLoading) return;
-    setIsLoading(true);
-    try {
-      const requestUrl = `${backendUrl}/api/products?limit=${limit}&page=${page}`;
-      const response = await axios.get(requestUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Cache-Control": "no-cache",
-        },
-      });
+  const fetchList = useCallback(
+    async (page = 1, retryCount = 0) => {
+      if (isLoading) return;
+      setIsLoading(true);
+      try {
+        const requestUrl = `${backendUrl}/api/products?limit=${limit}&page=${page}`;
+        const response = await axios.get(requestUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache",
+          },
+        });
 
-      let products = [];
-      if (Array.isArray(response.data.data)) {
-        products = response.data.data;
-      } else if (response.data.data?.products) {
-        products = response.data.data.products;
-      }
-
-      let totalPagesCalc = 1;
-      const pagination = response.data.data?.pagination || {};
-      if (pagination.last_page) {
-        totalPagesCalc = pagination.last_page;
-      } else {
-        const totalProducts = response.data.total || products.length;
-        totalPagesCalc = Math.ceil(totalProducts / limit);
-        if (products.length < limit) {
-          totalPagesCalc = page;
-        } else if (products.length === limit) {
-          totalPagesCalc = page + 1;
+        let products = [];
+        if (Array.isArray(response.data.data)) {
+          products = response.data.data;
+        } else if (response.data.data?.products) {
+          products = response.data.data.products;
         }
-      }
 
-      if (Array.isArray(products) && products.length > 0) {
-        setList(products.reverse());
-        setTotalPages(totalPagesCalc);
-      } else {
-        if (retryCount < 2) {
-          setTimeout(() => fetchList(page, retryCount + 1), 1000);
+        let totalPagesCalc = 1;
+        const pagination = response.data.data?.pagination || {};
+        if (pagination.last_page) {
+          totalPagesCalc = pagination.last_page;
         } else {
-          toast.error(response.data.message || t("list.noProducts"));
-          setList([]);
-          setTotalPages(1);
+          const totalProducts = response.data.total || products.length;
+          totalPagesCalc = Math.ceil(totalProducts / limit);
+          if (products.length < limit) {
+            totalPagesCalc = page;
+          } else if (products.length === limit) {
+            totalPagesCalc = page + 1;
+          }
         }
+
+        if (Array.isArray(products) && products.length > 0) {
+          setList(products.reverse());
+          setTotalPages(totalPagesCalc);
+        } else {
+          if (retryCount < 2) {
+            setTimeout(() => fetchList(page, retryCount + 1), 1000);
+          } else {
+            toast.error(response.data.message || t("list.noProducts"));
+            setList([]);
+            setTotalPages(1);
+          }
+        }
+      } catch (error) {
+        if (error.code === "ERR_NETWORK") {
+          toast.error(t("errors.network"));
+        } else if (error.response) {
+          toast.error(
+            t("errors.server", {
+              status: error.response.status,
+              message: error.response.data.message || error.message,
+            })
+          );
+        } else {
+          toast.error(t("errors.generic"));
+        }
+        setList([]);
+        setTotalPages(1);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      if (error.code === "ERR_NETWORK") {
-        toast.error(t("errors.network"));
-      } else if (error.response) {
-        toast.error(
-          t("errors.server", {
-            status: error.response.status,
-            message: error.response.data.message || error.message,
-          })
-        );
-      } else {
-        toast.error(t("errors.generic"));
-      }
-      setList([]);
-      setTotalPages(1);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [token, isLoading, t]
+  );
 
   // دالة جلب الفئات
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
@@ -142,7 +145,7 @@ const List = ({ token }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [token, t]);
 
   // دالة إظهار نافذة تأكيد الحذف
   const confirmDeleteProduct = (product) => {
@@ -378,7 +381,7 @@ const List = ({ token }) => {
       toast.error("يرجى تسجيل الدخول لعرض المنتجات");
       setList([]);
     }
-  }, [token, currentPage]);
+  }, [token, currentPage, fetchList, fetchCategories, isLoading]);
 
   return (
     <>
@@ -659,6 +662,11 @@ const List = ({ token }) => {
 };
 
 export default List;
+
+import PropTypes from "prop-types";
+List.propTypes = {
+  token: PropTypes.string,
+};
 
 //? ========= end API ===========
 //? ========= end API ===========

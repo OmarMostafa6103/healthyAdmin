@@ -1,47 +1,40 @@
-// import React from 'react';
-// import { assets } from '../assets/assets';
-// import { useNavigate } from 'react-router-dom'; // استيراد useNavigate للتوجيه
-
-// const Navbar = ({ setToken }) => {
-//   const navigate = useNavigate();
-
-//   const handleLogout = () => {
-//     setToken(''); // تعيين التوكن إلى قيمة فارغة
-//     localStorage.removeItem('token'); // إزالة التوكن من localStorage
-//     navigate('/login', { replace: true }); // التوجيه إلى صفحة تسجيل الدخول
-//   };
-
-//   return (
-//     <div className='flex items-center py-2 px-[4%] justify-between'>
-//       <img className='w-[max(10%,80px)]' src={assets.logo} alt="" />
-//       <button
-//         onClick={handleLogout}
-//         className='bg-gray-600 text-white px-5 py-2 sm:px-7 sm:py-2 rounded-full text-xs sm:text-sm'
-//       >
-//         Logout
-//       </button>
-//     </div>
-//   );
-// };
-
-// export default Navbar;
-
-import React from "react";
-import { useNavigate, Link } from "react-router-dom"; // استيراد useNavigate و Link للتوجيه
+import PropTypes from "prop-types";
+import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useState, useRef, useEffect } from "react";
 
-const Navbar = ({ setToken, setSidebarOpen, sidebarOpen }) => {
+const languages = [
+  { code: "en", label: "English", flag: "🇺🇸" },
+  { code: "ar", label: "العربية", flag: "🇸🇦" },
+];
+
+export default function Navbar({ setToken, setSidebarOpen, sidebarOpen }) {
   const navigate = useNavigate();
-
   const { i18n, t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function onDocClick(e) {
+      if (
+        open &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, [open]);
 
   const handleLogout = () => {
-    setToken(""); // تعيين التوكن إلى قيمة فارغة
-    localStorage.removeItem("token"); // إزالة التوكن من localStorage
-    navigate("/login", { replace: true }); // التوجيه إلى صفحة تسجيل الدخول
+    setToken && setToken("");
+    localStorage.removeItem("token");
+    navigate("/login", { replace: true });
   };
 
-  const setLanguage = (lng) => {
+  const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
     try {
       localStorage.setItem("i18nextLng", lng);
@@ -49,12 +42,15 @@ const Navbar = ({ setToken, setSidebarOpen, sidebarOpen }) => {
       // ignore
     }
     document.documentElement.dir = lng === "ar" ? "rtl" : "ltr";
+    setOpen(false);
   };
+
+  const activeLang =
+    languages.find((l) => l.code === i18n.language) || languages[0];
 
   return (
     <div className="flex items-center py-2 px-4 justify-between">
       <div className="flex items-center gap-3">
-        {/* hamburger for small screens */}
         <button
           aria-label="Toggle sidebar"
           onClick={() => setSidebarOpen && setSidebarOpen(!sidebarOpen)}
@@ -85,19 +81,56 @@ const Navbar = ({ setToken, setSidebarOpen, sidebarOpen }) => {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
+        <div className="relative" ref={dropdownRef}>
           <button
-            onClick={() => setLanguage("en")}
-            className="px-2 py-1 text-sm rounded hover:bg-gray-100"
+            onClick={() => setOpen((v) => !v)}
+            className="flex items-center gap-2 px-3 py-1 rounded hover:bg-gray-100 border"
+            aria-haspopup="listbox"
+            aria-expanded={open}
           >
-            EN
+            <span className="text-lg">🌐</span>
+            <span className="hidden sm:inline">
+              {activeLang.flag} {activeLang.label}
+            </span>
+            <svg
+              className={`w-4 h-4 ml-1 transition-transform ${
+                open ? "rotate-180" : ""
+              }`}
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5 7l5 5 5-5"
+                stroke="#111827"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
-          <button
-            onClick={() => setLanguage("ar")}
-            className="px-2 py-1 text-sm rounded hover:bg-gray-100"
-          >
-            AR
-          </button>
+
+          {open && (
+            <ul
+              role="listbox"
+              className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-md z-50 overflow-hidden"
+            >
+              {languages.map((lang) => (
+                <li key={lang.code}>
+                  <button
+                    onClick={() => changeLanguage(lang.code)}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <span className="text-lg">{lang.flag}</span>
+                    <span className="flex-1">{lang.label}</span>
+                    {i18n.language === lang.code && (
+                      <span className="text-blue-600 font-semibold">✓</span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <button
@@ -109,6 +142,10 @@ const Navbar = ({ setToken, setSidebarOpen, sidebarOpen }) => {
       </div>
     </div>
   );
-};
+}
 
-export default Navbar;
+Navbar.propTypes = {
+  setToken: PropTypes.func,
+  setSidebarOpen: PropTypes.func,
+  sidebarOpen: PropTypes.bool,
+};

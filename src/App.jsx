@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
@@ -11,8 +11,7 @@ import Login from "./components/Login";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export const backendUrl = import.meta.env.VITE_BACKEND_URL;
-export const currency = "$";
+// config holds environment constants used across pages
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");

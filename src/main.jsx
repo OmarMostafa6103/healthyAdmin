@@ -10,7 +10,7 @@
 //   </BrowserRouter>,
 // )
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
@@ -51,5 +51,7 @@ const Root = () => {
     </Provider>
   );
 };
+
+export default Root;
 
 ReactDOM.createRoot(document.getElementById("root")).render(<Root />);

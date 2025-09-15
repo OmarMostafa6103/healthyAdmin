@@ -37,9 +37,7 @@ const productFormSlice = createSlice({
     clearField: (state, action) => {
       state[action.payload] = initialState[action.payload];
     },
-    resetForm: (state) => {
-      return initialState;
-    },
+    resetForm: () => initialState,
   },
 });
 

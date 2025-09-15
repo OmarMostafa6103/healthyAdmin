@@ -1,4 +1,4 @@
-import React from "react";
+import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { useTranslation } from "react-i18next";
@@ -139,3 +139,8 @@ const Sidebar = ({ open, setOpen }) => {
 };
 
 export default Sidebar;
+
+Sidebar.propTypes = {
+  open: PropTypes.bool,
+  setOpen: PropTypes.func,
+};
