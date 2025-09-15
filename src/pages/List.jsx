@@ -6,12 +6,14 @@ import axios from "axios";
 import { backendUrl, currency } from "../App";
 import { toast } from "react-toastify";
 import Modal from "react-modal";
+import { useTranslation } from "react-i18next";
 
 // Bind the modal to the main app element
 Modal.setAppElement("#root");
 
 const List = ({ token }) => {
   const [list, setList] = useState([]);
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -77,24 +79,23 @@ const List = ({ token }) => {
         if (retryCount < 2) {
           setTimeout(() => fetchList(page, retryCount + 1), 1000);
         } else {
-          toast.error(response.data.message || "لا توجد منتجات");
+          toast.error(response.data.message || t("list.noProducts"));
           setList([]);
           setTotalPages(1);
         }
       }
     } catch (error) {
       if (error.code === "ERR_NETWORK") {
-        toast.error(
-          "غير قادر على الاتصال بالخادم. يرجى التحقق من حالة الخادم."
-        );
+        toast.error(t("errors.network"));
       } else if (error.response) {
         toast.error(
-          `خطأ في الخادم: ${error.response.status} - ${
-            error.response.data.message || error.message
-          }`
+          t("errors.server", {
+            status: error.response.status,
+            message: error.response.data.message || error.message,
+          })
         );
       } else {
-        toast.error("حدث خطأ أثناء جلب المنتجات");
+        toast.error(t("errors.generic"));
       }
       setList([]);
       setTotalPages(1);
@@ -136,7 +137,7 @@ const List = ({ token }) => {
         throw new Error(response.data.message || "فشل في جلب الفئات");
       }
     } catch (error) {
-      toast.error(error.message || "حدث خطأ أثناء جلب الفئات");
+      toast.error(error.message || t("errors.generic"));
       setCategories([]);
     } finally {
       setIsLoading(false);
@@ -185,16 +186,17 @@ const List = ({ token }) => {
       }
     } catch (error) {
       if (error.code === "ERR_NETWORK") {
-        toast.error("غير قادر على الاتصال بالخادم. لم يتم حفظ التغييرات.");
+        toast.error(t("errors.network"));
       } else if (error.response) {
         toast.error(
-          `خطأ في الخادم: ${error.response.status} - ${
-            error.response.data.message || error.message
-          }`
+          t("errors.server", {
+            status: error.response.status,
+            message: error.response.data.message || error.message,
+          })
         );
         await fetchList(currentPage);
       } else {
-        toast.error(error.message || "حدث خطأ أثناء حذف المنتج");
+        toast.error(error.message || t("errors.generic"));
         await fetchList(currentPage);
       }
     } finally {
@@ -381,10 +383,10 @@ const List = ({ token }) => {
   return (
     <>
       <div className="min-h-screen flex flex-col">
-        {/* فلتر الكاتيجوري الأب */}
+        {/* parent category filter */}
         <div className="mb-4 flex items-center gap-2">
           <label htmlFor="parentCategoryFilter" className="font-semibold">
-            تصفية حسب الفئة الرئيسية:
+            {t("list.filterByParent")}
           </label>
           <select
             id="parentCategoryFilter"
@@ -392,7 +394,7 @@ const List = ({ token }) => {
             onChange={(e) => setParentCategoryFilter(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md"
           >
-            <option value="">كل الفئات</option>
+            <option value="">{t("list.allCategories")}</option>
             {parentCategories.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
@@ -402,22 +404,22 @@ const List = ({ token }) => {
         </div>
         {/* عدد المنتجات المعروضة */}
         <div className="mb-2 font-semibold">
-          عدد المنتجات المعروضة: {filteredList.length}
+          {t("list.itemsShown")}: {filteredList.length}
         </div>
-        <p className="mb-2">قائمة جميع المنتجات</p>
-        {isLoading && <p>جارٍ تحميل المنتجات...</p>}
+        <p className="mb-2">{t("list.allProducts")}</p>
+        {isLoading && <p>{t("list.loadingProducts")}</p>}
         {filteredList.length === 0 && !isLoading && (
-          <p>لا توجد منتجات متاحة.</p>
+          <p>{t("list.noProducts")}</p>
         )}
         {filteredList.length > 0 && (
           <div className="flex-grow flex flex-col gap-2 ">
             <div className="hidden md:grid grid-cols-[1fr_3fr_1fr_1fr_1fr_1fr] items-center py-1 px-2 border bg-gray-100 text-sm">
-              <b>الصورة</b>
-              <b>الاسم</b>
-              <b>الفئة</b>
-              <b>السعر</b>
-              <b className="text-center">حذف</b>
-              <b className="text-center">تعديل</b>
+              <b>{t("list.colImage")}</b>
+              <b>{t("list.colName")}</b>
+              <b>{t("list.colCategory")}</b>
+              <b>{t("list.colPrice")}</b>
+              <b className="text-center">{t("list.colDelete")}</b>
+              <b className="text-center">{t("list.colEdit")}</b>
             </div>
 
             {filteredList.map((item) => (
@@ -431,7 +433,7 @@ const List = ({ token }) => {
                   alt={item.product_name || "المنتج"}
                 />
                 <p>{item.product_name || "غير متوفر"}</p>
-                <p>{item.category?.category_name || "غير متوفر"}</p>
+                <p>{item.category?.category_name || t("list.notAvailable")}</p>
                 <p>
                   {currency}
                   {item.product_price || "0.00"}
@@ -460,7 +462,9 @@ const List = ({ token }) => {
           className="bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto mt-40"
           overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
         >
-          <h2 className="text-lg font-bold mb-4">تأكيد الحذف</h2>
+          <h2 className="text-lg font-bold mb-4">
+            {t("list.deleteConfirmTitle")}
+          </h2>
           <div className="flex flex-col items-center mb-4">
             {productToDelete && (
               <img
@@ -470,11 +474,10 @@ const List = ({ token }) => {
               />
             )}
             <p>
-              هل أنت متأكد من حذف المنتج{" "}
+              {t("list.deleteConfirmText")}{" "}
               <span className="font-semibold">
-                {productToDelete?.product_name || "غير معروف"}
+                {productToDelete?.product_name || t("list.unknown")}
               </span>
-              ؟
             </p>
           </div>
           <div className="flex justify-end gap-2">
@@ -483,13 +486,13 @@ const List = ({ token }) => {
               className="bg-red-500 text-white rounded px-4 py-2 disabled:bg-gray-400"
               disabled={isLoading}
             >
-              {isLoading ? "جارٍ الحذف..." : "نعم، احذف"}
+              {isLoading ? t("list.deleting") : t("list.deleteConfirmYes")}
             </button>
             <button
               onClick={closeDeleteModal}
               className="bg-gray-500 text-white rounded px-4 py-2"
             >
-              إلغاء
+              {t("app.cancel")}
             </button>
           </div>
         </Modal>
@@ -501,11 +504,13 @@ const List = ({ token }) => {
           className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto mt-20"
           overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
         >
-          <h2 className="text-xl font-bold mb-4">تعديل المنتج</h2>
+          <h2 className="text-xl font-bold mb-4">{t("list.editProduct")}</h2>
           {editItem && (
             <div className="flex flex-col gap-4">
               <div>
-                <label className="block text-sm mb-1">اسم المنتج:</label>
+                <label className="block text-sm mb-1">
+                  {t("list.labelProductName")}
+                </label>
                 <input
                   type="text"
                   name="product_name"
@@ -516,7 +521,9 @@ const List = ({ token }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm mb-1">الوصف:</label>
+                <label className="block text-sm mb-1">
+                  {t("list.labelDescription")}
+                </label>
                 <input
                   type="text"
                   name="product_description"
@@ -527,7 +534,9 @@ const List = ({ token }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm mb-1">السعر:</label>
+                <label className="block text-sm mb-1">
+                  {t("list.labelPrice")}
+                </label>
                 <input
                   type="number"
                   name="product_price"
@@ -538,7 +547,9 @@ const List = ({ token }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm mb-1">الكمية:</label>
+                <label className="block text-sm mb-1">
+                  {t("list.labelQuantity")}
+                </label>
                 <input
                   type="number"
                   name="product_quantity"
@@ -549,7 +560,9 @@ const List = ({ token }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm mb-1">الفئة:</label>
+                <label className="block text-sm mb-1">
+                  {t("list.labelCategory")}
+                </label>
                 <select
                   name="category_id"
                   value={editFormData.category_id}
@@ -557,7 +570,7 @@ const List = ({ token }) => {
                   className="border rounded px-2 py-1 w-full"
                   required
                 >
-                  <option value="">اختر فئة</option>
+                  <option value="">{t("list.chooseCategory")}</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
@@ -566,12 +579,14 @@ const List = ({ token }) => {
                 </select>
                 {categories.length === 0 && (
                   <p className="text-sm text-red-500">
-                    لا توجد فئات متاحة. يرجى إضافة فئات أولاً.
+                    {t("list.noCategoriesAvailable")}
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-sm mb-1">معرف المنتج:</label>
+                <label className="block text-sm mb-1">
+                  {t("list.labelProductId")}
+                </label>
                 <input
                   type="text"
                   name="product_id"
@@ -602,13 +617,13 @@ const List = ({ token }) => {
                   className="bg-green-500 text-white rounded px-4 py-2 disabled:bg-gray-400"
                   disabled={isLoading}
                 >
-                  {isLoading ? "جارٍ الحفظ..." : "حفظ"}
+                  {isLoading ? t("list.saving") : t("app.save")}
                 </button>
                 <button
                   onClick={closeEditForm}
                   className="bg-red-500 text-white rounded px-4 py-2"
                 >
-                  إلغاء
+                  {t("app.cancel")}
                 </button>
               </div>
             </div>
@@ -622,11 +637,12 @@ const List = ({ token }) => {
             disabled={currentPage === 1}
             className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
           >
-            السابق
+            {t("pagination.previous")}
           </button>
 
           <span className="px-4 py-2">
-            الصفحة {currentPage} من {totalPages}
+            {t("pagination.page")} {currentPage} {t("pagination.of")}{" "}
+            {totalPages}
           </span>
 
           <button
@@ -634,7 +650,7 @@ const List = ({ token }) => {
             disabled={currentPage === totalPages}
             className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
           >
-            التالي
+            {t("pagination.next")}
           </button>
         </div>
       </div>

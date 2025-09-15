@@ -377,7 +377,8 @@
 // //? ========= end API ===========
 // //? ========= end API ===========
 
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import {
   setImages,
@@ -386,7 +387,6 @@ import {
   setDescription,
   setPrice,
   setQuantity,
-  setCategoryId,
   resetForm,
 } from "../redux/productFormSlice";
 import { assets } from "../assets/assets";
@@ -416,14 +416,26 @@ const DeleteIcon = () => {
 
 // Spinner صغير
 const Spinner = () => (
-  <svg className="inline w-4 h-4 ml-2 animate-spin text-gray-500" viewBox="0 0 24 24">
-    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+  <svg
+    className="inline w-4 h-4 ml-2 animate-spin text-gray-500"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      className="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="4"
+      fill="none"
+    />
     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
   </svg>
 );
 
 const Add = ({ token }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const productForm = useSelector((state) => {
     return (
@@ -438,8 +450,7 @@ const Add = ({ token }) => {
     );
   });
 
-  const { images, name, description, price, quantity, categoryId } =
-    productForm;
+  const { images, name, description, price, quantity } = productForm;
 
   const [categories, setCategories] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -448,7 +459,7 @@ const Add = ({ token }) => {
   const [isCategoriesLoading, setIsCategoriesLoading] = React.useState(false); // لتحميل الكاتيجوري فقط
 
   // Fetch categories with localStorage cache
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setIsCategoriesLoading(true);
       setIsLoading(true);
@@ -458,7 +469,11 @@ const Add = ({ token }) => {
         try {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed)) setCategories(parsed);
-        } catch {}
+        } catch (err) {
+          // Ignore cache parse errors but log for debugging
+          // eslint-disable-next-line no-console
+          console.warn("Failed to parse categories_cache:", err);
+        }
       }
       // ثم جلب من السيرفر
       const response = await axios.get(
@@ -487,17 +502,20 @@ const Add = ({ token }) => {
         }));
         setCategories(formattedCategories);
         // حفظ في الكاش
-        localStorage.setItem("categories_cache", JSON.stringify(formattedCategories));
+        localStorage.setItem(
+          "categories_cache",
+          JSON.stringify(formattedCategories)
+        );
       } else {
         throw new Error(response.data.message || "فشل في جلب الفئات");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "فشل في جلب الفئات");
+      toast.error(error.response?.data?.message || t("errors.network"));
     } finally {
       setIsLoading(false);
       setIsCategoriesLoading(false);
     }
-  };
+  }, [token, t]);
 
   // Refresh products
   const refreshProducts = async () => {
@@ -506,12 +524,16 @@ const Add = ({ token }) => {
       await axios.get(`${backendUrl}/api/products?page=1&limit=25`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-    } catch (error) {}
+    } catch (error) {
+      // Log refresh errors for debugging; non-fatal for the Add flow
+      // eslint-disable-next-line no-console
+      console.error("refreshProducts error:", error);
+    }
   };
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   // تصفية الكاتيجوري الرئيسية (الأب)
   const parentCategories = categories.filter((cat) => !cat.parent);
@@ -525,7 +547,7 @@ const Add = ({ token }) => {
     const files = Array.from(e.target.files);
 
     if (files.length > 4) {
-      toast.error("You cannot select more than 4 images!");
+      toast.error(t("add.maxImagesError"));
       return;
     }
 
@@ -554,10 +576,10 @@ const Add = ({ token }) => {
     setIsLoading(true);
     try {
       if (!images.image) {
-        throw new Error("Main image is required");
+        throw new Error(t("add.mainImageRequired"));
       }
       if (!subCategoryId) {
-        throw new Error("Please select a subcategory");
+        throw new Error(t("add.selectSubcategory"));
       }
       const productData = new FormData();
       productData.append("name", name);
@@ -581,7 +603,7 @@ const Add = ({ token }) => {
         }
       );
       if (response.data.status === 200 || response.data.status === 201) {
-        toast.success(response.data.message || "تمت إضافة المنتج بنجاح");
+        toast.success(response.data.message || t("add.addedSuccessfully"));
         dispatch(resetForm());
         await refreshProducts();
       } else {
@@ -591,7 +613,7 @@ const Add = ({ token }) => {
       if (error.response?.status === 422) {
         const validationErrors = error.response.data.errors || {};
         const errorMessages = Object.values(validationErrors).flat().join(", ");
-        toast.error(errorMessages || "Validation errors");
+        toast.error(errorMessages || t("add.validationErrors"));
       } else {
         toast.error(error.response?.data?.message || error.message);
       }
@@ -618,16 +640,16 @@ const Add = ({ token }) => {
       className="flex flex-col w-full items-start gap-3"
     >
       <div>
-        <p className="mb-2">Upload Images</p>
+        <p className="mb-2">{t("add.uploadImages")}</p>
         <div className="flex gap-4 flex-wrap">
           <label htmlFor="images" className="flex flex-col items-center">
             <img
               className="w-20 h-20 object-cover"
               src={assets.upload_area}
-              alt="Upload images"
+              alt={t("add.uploadImages")}
             />
             <span className="text-sm text-gray-600 mt-1">
-              Upload Images (up to 4)
+              {t("add.uploadImagesHint")}
             </span>
             <input
               onChange={handleImageChange}
@@ -643,9 +665,11 @@ const Add = ({ token }) => {
               <img
                 className="w-20 h-20 object-cover"
                 src={getImageSrc(images.image)}
-                alt="Main image"
+                alt={t("add.mainImage")}
               />
-              <span className="text-sm text-gray-600 mt-1">Main Image</span>
+              <span className="text-sm text-gray-600 mt-1">
+                {t("add.mainImage")}
+              </span>
             </label>
             {images.image && (
               <button
@@ -662,10 +686,10 @@ const Add = ({ token }) => {
               <img
                 className="w-20 h-20 object-cover"
                 src={getImageSrc(images.image1)}
-                alt="Additional image 1"
+                alt={t("add.additionalImage", { n: 1 })}
               />
               <span className="text-sm text-gray-600 mt-1">
-                Image 1 (Optional)
+                {t("add.additionalImage", { n: 1 })}
               </span>
             </label>
             {images.image1 && (
@@ -683,10 +707,10 @@ const Add = ({ token }) => {
               <img
                 className="w-20 h-20 object-cover"
                 src={getImageSrc(images.image2)}
-                alt="Additional image 2"
+                alt={t("add.additionalImage", { n: 2 })}
               />
               <span className="text-sm text-gray-600 mt-1">
-                Image 2 (Optional)
+                {t("add.additionalImage", { n: 2 })}
               </span>
             </label>
             {images.image2 && (
@@ -704,10 +728,10 @@ const Add = ({ token }) => {
               <img
                 className="w-20 h-20 object-cover"
                 src={getImageSrc(images.image3)}
-                alt="Additional image 3"
+                alt={t("add.additionalImage", { n: 3 })}
               />
               <span className="text-sm text-gray-600 mt-1">
-                Image 3 (Optional)
+                {t("add.additionalImage", { n: 3 })}
               </span>
             </label>
             {images.image3 && (
@@ -724,31 +748,31 @@ const Add = ({ token }) => {
       </div>
 
       <div className="w-full">
-        <p className="mb-2">Product Name</p>
+        <p className="mb-2">{t("add.productName")}</p>
         <input
           onChange={(e) => dispatch(setName(e.target.value))}
           value={name}
           className="w-full max-w-[500px] px-3 py-2"
           type="text"
-          placeholder="Type here"
+          placeholder={t("add.productNamePlaceholder")}
           required
         />
       </div>
 
       <div className="w-full">
-        <p className="mb-2">Product Description</p>
+        <p className="mb-2">{t("add.productDescription")}</p>
         <textarea
           onChange={(e) => dispatch(setDescription(e.target.value))}
           value={description}
           className="w-full max-w-[500px] px-3 py-2"
-          placeholder="Write description here"
+          placeholder={t("add.productDescriptionPlaceholder")}
           required
         />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:gap-8">
         <div>
-          <p className="mb-2">الفئة الرئيسية</p>
+          <p className="mb-2">{t("add.parentCategory")}</p>
           <div className="flex items-center">
             <select
               onChange={(e) => {
@@ -759,7 +783,7 @@ const Add = ({ token }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               required
             >
-              <option value="">اختر الفئة الرئيسية</option>
+              <option value="">{t("add.selectParentFirst")}</option>
               {parentCategories.length > 0 ? (
                 parentCategories.map((category) => (
                   <option key={category.id} value={category.id}>
@@ -768,7 +792,7 @@ const Add = ({ token }) => {
                 ))
               ) : (
                 <option value="" disabled>
-                  جاري تحميل الفئات...
+                  {t("add.categoriesLoading")}
                 </option>
               )}
             </select>
@@ -777,7 +801,7 @@ const Add = ({ token }) => {
         </div>
 
         <div>
-          <p className="mb-2">الفئة الفرعية</p>
+          <p className="mb-2">{t("add.parentCategory")}</p>
           <select
             onChange={(e) => setSubCategoryId(e.target.value)}
             value={subCategoryId}
@@ -787,8 +811,8 @@ const Add = ({ token }) => {
           >
             <option value="">
               {parentCategoryId
-                ? "اختر الفئة الفرعية"
-                : "اختر الفئة الرئيسية أولاً"}
+                ? t("add.selectParentFirst")
+                : t("add.selectParentFirst")}
             </option>
             {subCategories.length > 0
               ? subCategories.map((category) => (
@@ -798,32 +822,32 @@ const Add = ({ token }) => {
                 ))
               : parentCategoryId && (
                   <option value="" disabled>
-                    لا توجد فئات فرعية لهذا الأب. يرجى اختيار فئة رئيسية أخرى.
+                    {t("add.noSubcategories")}
                   </option>
                 )}
           </select>
         </div>
 
         <div>
-          <p className="mb-2">Product Price</p>
+          <p className="mb-2">{t("add.productPrice")}</p>
           <input
             onChange={(e) => dispatch(setPrice(e.target.value))}
             value={price}
             className="w-full px-3 py-2 sm:w-[120px]"
             type="number"
-            placeholder="25"
+            placeholder={t("add.productPricePlaceholder")}
             required
           />
         </div>
 
         <div>
-          <p className="mb-2">Quantity</p>
+          <p className="mb-2">{t("add.quantity")}</p>
           <input
             onChange={(e) => dispatch(setQuantity(e.target.value))}
             value={quantity}
             className="w-full px-3 py-2 sm:w-[120px]"
             type="number"
-            placeholder="10"
+            placeholder={t("add.quantityPlaceholder")}
             required
           />
         </div>
@@ -834,7 +858,7 @@ const Add = ({ token }) => {
         className="w-28 py-3 mt-4 bg-black text-white"
         disabled={isLoading}
       >
-        {isLoading ? "Adding..." : "Add"}
+        {isLoading ? t("add.adding") : t("add.addButton")}
       </button>
     </form>
   );

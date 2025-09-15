@@ -1,8 +1,11 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { assets } from "../assets/assets";
+import { useTranslation } from "react-i18next";
 
 const Sidebar = ({ open, setOpen }) => {
+  const { t } = useTranslation();
+
   return (
     <>
       {/* Desktop sidebar */}
@@ -13,7 +16,7 @@ const Sidebar = ({ open, setOpen }) => {
             to="/add"
           >
             <img className="w-5 h-5" src={assets.add_icon} alt="" />
-            <p className="">Add Items</p>
+            <p className="">{t("sidebar.add")}</p>
           </NavLink>
 
           <NavLink
@@ -21,7 +24,7 @@ const Sidebar = ({ open, setOpen }) => {
             to="/list"
           >
             <img className="w-5 h-5" src={assets.order_icon} alt="" />
-            <p className="">List Items</p>
+            <p className="">{t("sidebar.list")}</p>
           </NavLink>
 
           <NavLink
@@ -29,7 +32,7 @@ const Sidebar = ({ open, setOpen }) => {
             to="/orders"
           >
             <img className="w-5 h-5" src={assets.order_icon} alt="" />
-            <p className="">Orders</p>
+            <p className="">{t("sidebar.orders")}</p>
           </NavLink>
 
           <NavLink
@@ -37,7 +40,7 @@ const Sidebar = ({ open, setOpen }) => {
             to="/categories"
           >
             <img className="w-5 h-5" src={assets.order_icon} alt="" />
-            <p className="">Categories</p>
+            <p className="">{t("sidebar.categories")}</p>
           </NavLink>
 
           <NavLink
@@ -45,7 +48,7 @@ const Sidebar = ({ open, setOpen }) => {
             to="/contact"
           >
             <img className="w-5 h-5" src={assets.order_icon} alt="" />
-            <p className="">Contact Messages</p>
+            <p className="">{t("sidebar.contact")}</p>
           </NavLink>
         </div>
       </aside>
@@ -59,7 +62,7 @@ const Sidebar = ({ open, setOpen }) => {
         aria-modal={open}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b">
-          <h3 className="font-semibold">Menu</h3>
+          <h3 className="font-semibold">{t("nav.language")}</h3>
           <button
             aria-label="Close menu"
             onClick={() => setOpen && setOpen(false)}
@@ -75,7 +78,7 @@ const Sidebar = ({ open, setOpen }) => {
             to="/add"
           >
             <img className="w-5 h-5" src={assets.add_icon} alt="" />
-            <p>Add Items</p>
+            <p>{t("sidebar.add")}</p>
           </NavLink>
 
           <NavLink
@@ -84,7 +87,7 @@ const Sidebar = ({ open, setOpen }) => {
             to="/list"
           >
             <img className="w-5 h-5" src={assets.order_icon} alt="" />
-            <p>List Items</p>
+            <p>{t("sidebar.list")}</p>
           </NavLink>
 
           <NavLink
@@ -93,7 +96,7 @@ const Sidebar = ({ open, setOpen }) => {
             to="/orders"
           >
             <img className="w-5 h-5" src={assets.order_icon} alt="" />
-            <p>Orders</p>
+            <p>{t("sidebar.orders")}</p>
           </NavLink>
 
           <NavLink
@@ -102,7 +105,7 @@ const Sidebar = ({ open, setOpen }) => {
             to="/categories"
           >
             <img className="w-5 h-5" src={assets.order_icon} alt="" />
-            <p>Categories</p>
+            <p>{t("sidebar.categories")}</p>
           </NavLink>
 
           <NavLink
@@ -111,7 +114,7 @@ const Sidebar = ({ open, setOpen }) => {
             to="/contact"
           >
             <img className="w-5 h-5" src={assets.order_icon} alt="" />
-            <p>Contact Messages</p>
+            <p>{t("sidebar.contact")}</p>
           </NavLink>
         </div>
       </div>
@@ -120,15 +123,15 @@ const Sidebar = ({ open, setOpen }) => {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t md:hidden flex justify-around py-2">
         <NavLink to="/add" className="flex flex-col items-center text-xs">
           <img className="w-5 h-5" src={assets.add_icon} alt="" />
-          <span className="text-[10px]">Add</span>
+          <span className="text-[10px]">{t("sidebar.add")}</span>
         </NavLink>
         <NavLink to="/list" className="flex flex-col items-center text-xs">
           <img className="w-5 h-5" src={assets.order_icon} alt="" />
-          <span className="text-[10px]">List</span>
+          <span className="text-[10px]">{t("sidebar.list")}</span>
         </NavLink>
         <NavLink to="/orders" className="flex flex-col items-center text-xs">
           <img className="w-5 h-5" src={assets.order_icon} alt="" />
-          <span className="text-[10px]">Orders</span>
+          <span className="text-[10px]">{t("sidebar.orders")}</span>
         </NavLink>
       </nav>
     </>

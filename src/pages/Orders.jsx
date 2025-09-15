@@ -354,38 +354,26 @@
 
 // export default Orders;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import React, { useEffect, useState, useMemo } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { backendUrl } from '../App';
+import React, { useEffect, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { backendUrl } from "../App";
 
 const Orders = ({ token }) => {
   const [orders, setOrders] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('date');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("date");
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedAccounts, setExpandedAccounts] = useState({});
   const accountsPerPage = 10;
 
   // جلب جميع الأوردرات من الـ API عبر الصفحات
+  const { t } = useTranslation();
+
   const fetchAllOrders = async () => {
     if (!token) {
-      toast.error('Please log in as an admin to view orders');
+      toast.error(t("errors.sessionExpired"));
       return;
     }
 
@@ -395,42 +383,56 @@ const Orders = ({ token }) => {
 
     try {
       while (hasMoreOrders) {
-        const response = await axios.get(`${backendUrl}/api/order?page=${page}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          `${backendUrl}/api/order?page=${page}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (response.data.status === 200) {
           const newOrders = Array.isArray(response.data.data)
             ? response.data.data.map((order) => {
-              return {
-                _id: order.order_id.toString(),
-                items: order.order_item.map((item) => ({
-                  name: item.product_name || 'Unknown',
-                  quantity: item.quantity || 1,
-                  price: item.total_price && item.quantity ? item.total_price / item.quantity : 0,
-                })),
-                address: {
-                  firstName: order.user_first_name || '',
-                  lastName: order.user_last_name || '',
-                  street: order.address || '',
-                  city: order.city || '',
-                  state: order.governorate || '',
-                  country: order.country || '',
-                  zipcode: order.postal_code || '',
-                  phone: order.phone || '',
-                },
-                email: order.email || 'Not available',
-                paymentMethod: order.payment_method || 'Unknown',
-                payment: order.payment_status || false,
-                date: order.order_date === '2 weeks'
-                  ? new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
-                  : order.order_date || new Date().toISOString().split('T')[0],
-                amount: order.order_item.reduce((acc, item) => acc + (item.total_price || 0), 0),
-                status: order.order_status
-                  ? order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)
-                  : 'Pending',
-              };
-            })
+                return {
+                  _id: order.order_id.toString(),
+                  items: order.order_item.map((item) => ({
+                    name: item.product_name || "Unknown",
+                    quantity: item.quantity || 1,
+                    price:
+                      item.total_price && item.quantity
+                        ? item.total_price / item.quantity
+                        : 0,
+                  })),
+                  address: {
+                    firstName: order.user_first_name || "",
+                    lastName: order.user_last_name || "",
+                    street: order.address || "",
+                    city: order.city || "",
+                    state: order.governorate || "",
+                    country: order.country || "",
+                    zipcode: order.postal_code || "",
+                    phone: order.phone || "",
+                  },
+                  email: order.email || "Not available",
+                  paymentMethod: order.payment_method || "Unknown",
+                  payment: order.payment_status || false,
+                  date:
+                    order.order_date === "2 weeks"
+                      ? new Date(
+                          Date.now() - 14 * 24 * 60 * 60 * 1000
+                        ).toISOString()
+                      : order.order_date ||
+                        new Date().toISOString().split("T")[0],
+                  amount: order.order_item.reduce(
+                    (acc, item) => acc + (item.total_price || 0),
+                    0
+                  ),
+                  status: order.order_status
+                    ? order.order_status.charAt(0).toUpperCase() +
+                      order.order_status.slice(1)
+                    : "Pending",
+                };
+              })
             : [];
 
           allOrders = [...allOrders, ...newOrders];
@@ -441,22 +443,26 @@ const Orders = ({ token }) => {
             page += 1;
           }
         } else {
-          throw new Error(response.data.message || 'Failed to fetch orders');
+          throw new Error(response.data.message || "Failed to fetch orders");
         }
       }
 
       setOrders(allOrders);
 
       if (allOrders.length === 0) {
-        toast.info('No orders available');
+        toast.info(t("orders.noOrders"));
       }
     } catch (error) {
       if (error.response?.status === 401) {
-        toast.error('Session expired, please log in again');
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        toast.error(t("errors.sessionExpired"));
+        localStorage.removeItem("token");
+        window.location.href = "/login";
       } else {
-        toast.error(`Failed to fetch orders: ${error.response?.data?.message || error.message}`);
+        toast.error(
+          `Failed to fetch orders: ${
+            error.response?.data?.message || error.message
+          }`
+        );
       }
     }
   };
@@ -472,20 +478,20 @@ const Orders = ({ token }) => {
 
       let formattedStatus;
       switch (newStatus) {
-        case 'Pending':
-          formattedStatus = 'pending';
+        case "Pending":
+          formattedStatus = "pending";
           break;
-        case 'Packing':
-          formattedStatus = 'packing';
+        case "Packing":
+          formattedStatus = "packing";
           break;
-        case 'Shipped':
-          formattedStatus = 'shipped';
+        case "Shipped":
+          formattedStatus = "shipped";
           break;
-        case 'Out for delivery':
-          formattedStatus = 'out for delivery';
+        case "Out for delivery":
+          formattedStatus = "out for delivery";
           break;
-        case 'Delivered':
-          formattedStatus = 'delivered';
+        case "Delivered":
+          formattedStatus = "delivered";
           break;
         default:
           formattedStatus = newStatus.toLowerCase();
@@ -497,18 +503,22 @@ const Orders = ({ token }) => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
 
       if (response.data.status === 200) {
-        toast.success('Status updated successfully!');
+        toast.success(t("app.categoryUpdated"));
       } else {
-        throw new Error(response.data.message || 'Failed to update status');
+        throw new Error(response.data.message || "Failed to update status");
       }
     } catch (error) {
-      toast.error(`Failed to update status: ${error.response?.data?.message || 'Validation error'}`);
+      toast.error(
+        `Failed to update status: ${
+          error.response?.data?.message || "Validation error"
+        }`
+      );
       const revertedOrders = orders.map((order) =>
         order._id === orderId ? { ...order, status: order.status } : order
       );
@@ -539,11 +549,11 @@ const Orders = ({ token }) => {
       );
     }
 
-    if (sortBy === 'date') {
+    if (sortBy === "date") {
       filteredOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
-    } else if (sortBy === 'status') {
+    } else if (sortBy === "status") {
       filteredOrders.sort((a, b) => a.status.localeCompare(b.status));
-    } else if (sortBy === 'amount') {
+    } else if (sortBy === "amount") {
       filteredOrders.sort((a, b) => b.amount - a.amount);
     }
 
@@ -577,15 +587,17 @@ const Orders = ({ token }) => {
 
   const groupedOrders = groupOrdersByAccount(filteredAndSortedOrders);
   const paginatedOrders = paginateAccounts(groupedOrders);
-  const totalPages = Math.ceil(Object.keys(groupedOrders).length / accountsPerPage);
+  const totalPages = Math.ceil(
+    Object.keys(groupedOrders).length / accountsPerPage
+  );
 
   return (
     <div className="p-4">
-      <h3 className="text-xl font-semibold mb-4">Orders Page</h3>
+      <h3 className="text-xl font-semibold mb-4">{t("orders.pageTitle")}</h3>
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <input
           type="text"
-          placeholder="Search by email..."
+          placeholder={t("orders.searchPlaceholder")}
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -601,14 +613,14 @@ const Orders = ({ token }) => {
           }}
           className="p-2 border rounded"
         >
-          <option value="date">Sort by Date (Newest First)</option>
-          <option value="status">Sort by Status</option>
-          <option value="amount">Sort by Amount (Highest First)</option>
+          <option value="date">{t("orders.sortByDate")}</option>
+          <option value="status">{t("orders.sortByStatus")}</option>
+          <option value="amount">{t("orders.sortByAmount")}</option>
         </select>
       </div>
       <div className="order-list transition-opacity duration-300">
         {orders.length === 0 ? (
-          <p className="text-gray-500">No orders available.</p>
+          <p className="text-gray-500">{t("orders.noOrders")}</p>
         ) : Object.keys(paginatedOrders).length > 0 ? (
           Object.keys(paginatedOrders).map((accountEmail) => (
             <div key={accountEmail} className="mb-4 border-b-2 pb-4">
@@ -617,7 +629,7 @@ const Orders = ({ token }) => {
                 onClick={() => toggleAccount(accountEmail)}
               >
                 <span className="mr-2 text-lg">
-                  {expandedAccounts[accountEmail] ? '▼' : '▶'}
+                  {expandedAccounts[accountEmail] ? "▼" : "▶"}
                 </span>
                 <h4 className="font-bold text-lg">{accountEmail}</h4>
               </div>
@@ -637,39 +649,67 @@ const Orders = ({ token }) => {
                           ))}
                         </div>
                         <p className="mt-3 mb-2 font-medium">
-                          {order.address.firstName + ' ' + order.address.lastName}
+                          {order.address.firstName +
+                            " " +
+                            order.address.lastName}
                         </p>
                         <div>
-                          <p>{order.address.street + ','}</p>
+                          <p>{order.address.street + ","}</p>
                           <p>
                             {order.address.city +
-                              ', ' +
+                              ", " +
                               order.address.state +
-                              ', ' +
+                              ", " +
                               order.address.country +
-                              ', ' +
+                              ", " +
                               order.address.zipcode}
                           </p>
                           <p>{order.address.phone}</p>
                         </div>
                       </div>
                       <div>
-                        <p className="text-sm sm:text-[15px]">Number of Items: {order.items.length}</p>
-                        <p className="mt-3">Payment Method: {order.paymentMethod}</p>
-                        <p>Payment: {order.payment ? 'Completed' : 'Pending'}</p>
-                        <p>Date: {isNaN(new Date(order.date).getTime()) ? order.date : new Date(order.date).toLocaleDateString()}</p>
+                        <p className="text-sm sm:text-[15px]">
+                          {t("orders.numberOfItems")} {order.items.length}
+                        </p>
+                        <p className="mt-3">
+                          {t("orders.paymentMethod")} {order.paymentMethod}
+                        </p>
+                        <p>
+                          {t("orders.paymentMethod")}{" "}
+                          {order.payment
+                            ? t("orders.paymentCompleted")
+                            : t("orders.paymentPending")}
+                        </p>
+                        <p>
+                          {t("orders.date")}{" "}
+                          {isNaN(new Date(order.date).getTime())
+                            ? order.date
+                            : new Date(order.date).toLocaleDateString()}
+                        </p>
                       </div>
-                      <p className="text-sm sm:text-[15px]">{order.amount} EGP</p>
+                      <p className="text-sm sm:text-[15px]">
+                        {order.amount} {t("orders.currency")}
+                      </p>
                       <select
                         onChange={(event) => statusHandler(event, order._id)}
                         value={order.status}
                         className="p-2 font-semibold border rounded"
                       >
-                        <option value="Pending">Pending</option>
-                        <option value="Packing">Packing</option>
-                        <option value="Shipped">Shipped</option>
-                        <option value="Out for delivery">Out for delivery</option>
-                        <option value="Delivered">Delivered</option>
+                        <option value="Pending">
+                          {t("orders.statusOptions.Pending")}
+                        </option>
+                        <option value="Packing">
+                          {t("orders.statusOptions.Packing")}
+                        </option>
+                        <option value="Shipped">
+                          {t("orders.statusOptions.Shipped")}
+                        </option>
+                        <option value="Out for delivery">
+                          {t("orders.statusOptions.Out for delivery")}
+                        </option>
+                        <option value="Delivered">
+                          {t("orders.statusOptions.Delivered")}
+                        </option>
                       </select>
                     </div>
                   ))}
@@ -678,7 +718,7 @@ const Orders = ({ token }) => {
             </div>
           ))
         ) : (
-          <p className="text-gray-500">No accounts match your criteria.</p>
+          <p className="text-gray-500">{t("orders.noAccountsMatch")}</p>
         )}
       </div>
       {totalPages > 1 && (
@@ -688,23 +728,27 @@ const Orders = ({ token }) => {
             disabled={currentPage === 1}
             className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
           >
-            Previous
+            {t("orders.previous")}
           </button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`px-3 py-1 rounded ${currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+              className={`px-3 py-1 rounded ${
+                currentPage === page ? "bg-blue-500 text-white" : "bg-gray-200"
+              }`}
             >
               {page}
             </button>
           ))}
           <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
             className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
           >
-            Next
+            {t("orders.next")}
           </button>
         </div>
       )}

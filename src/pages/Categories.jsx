@@ -3,6 +3,7 @@ import axios from "axios";
 import { backendUrl } from "../App";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const Categories = ({ token }) => {
   const [categories, setCategories] = useState([]); // لتخزين قائمة الفئات
@@ -16,6 +17,7 @@ const Categories = ({ token }) => {
   const [categoryToDelete, setCategoryToDelete] = useState(null); // لتخزين الفئة المراد حذفها
   const [openAccordionIds, setOpenAccordionIds] = useState([]);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Helper function to log errors
   const logError = (functionName, error, additionalDetails = {}) => {
@@ -32,20 +34,19 @@ const Categories = ({ token }) => {
 
   // Helper function to display error messages in the UI
   const displayError = (errorDetails) => {
-    let userMessage = "An error occurred. Please try again.";
+    let userMessage = t("errors.generic");
     if (errorDetails.status === 401 || errorDetails.status === 514) {
-      userMessage = "Session expired. Please log in again.";
+      userMessage = t("errors.sessionExpired");
     } else if (errorDetails.message.includes("Network Error")) {
-      userMessage =
-        "Could not connect to the server. Please ensure the backend is running.";
+      userMessage = t("errors.network");
     } else if (errorDetails.status === 422) {
       const validationErrors = errorDetails.responseData?.errors || {};
       userMessage =
         Object.values(validationErrors).flat().join(", ") ||
-        "Validation Errors";
+        t("errors.validation");
     } else if (errorDetails.status === 500) {
       if (errorDetails.responseData?.message?.includes("Duplicate entry")) {
-        userMessage = "Category name already exists.";
+        userMessage = t("errors.categoryExists");
       } else {
         userMessage = `Server error: ${
           errorDetails.responseData?.message || "Unknown server error"
@@ -151,7 +152,7 @@ const Categories = ({ token }) => {
       console.log("Add Category Response:", response);
 
       if (response.data.status === 200 || response.data.status === 201) {
-        toast.success("Category added successfully");
+        toast.success(t("app.categoryAdded"));
         setNewCategoryName("");
         setNewCategoryParent("");
         fetchCategories();
@@ -208,7 +209,7 @@ const Categories = ({ token }) => {
       );
 
       if (response.data.status === 200) {
-        toast.success("Category updated successfully");
+        toast.success(t("app.categoryUpdated"));
         setEditCategoryId(null);
         setEditCategoryName("");
         setEditCategoryParent("");
@@ -246,7 +247,7 @@ const Categories = ({ token }) => {
       );
 
       if (response.data.status === 200) {
-        toast.success("Category deleted successfully");
+        toast.success(t("app.categoryDeleted"));
         fetchCategories();
       } else {
         throw new Error(response.data.message || "Failed to delete category");
@@ -314,7 +315,7 @@ const Categories = ({ token }) => {
       {/* Add new category form */}
       <div className="w-full max-w-lg bg-white shadow-lg rounded-xl p-8 mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          Add New Category
+          {t("app.addNewCategory")}
         </h2>
         <form onSubmit={addCategory}>
           <div className="mb-6">
@@ -323,7 +324,7 @@ const Categories = ({ token }) => {
               value={newCategoryName}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
               type="text"
-              placeholder="Enter category name"
+              placeholder={t("app.addCategoryPlaceholder")}
               required
             />
           </div>
@@ -333,7 +334,7 @@ const Categories = ({ token }) => {
               value={newCategoryParent}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             >
-              <option value="">Select Parent Category (Optional)</option>
+              <option value="">{t("app.selectParent")}</option>
               {getParentCategories().map((category) => (
                 <option key={category.category_id} value={category.category_id}>
                   {category.name}
@@ -346,7 +347,7 @@ const Categories = ({ token }) => {
             className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400"
             disabled={isLoading}
           >
-            {isLoading ? "Adding..." : "Add Category"}
+            {isLoading ? t("app.adding") : t("app.addButton")}
           </button>
         </form>
       </div>
@@ -354,12 +355,12 @@ const Categories = ({ token }) => {
       {/* Categories list - table on md+, cards on small screens */}
       <div className="w-full max-w-6xl">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          Categories List
+          {t("app.categoryList")}
         </h2>
         {isLoading ? (
-          <p className="text-gray-500 text-center">Loading...</p>
+          <p className="text-gray-500 text-center">{t("app.loading")}</p>
         ) : !categories || categories.length === 0 ? (
-          <p className="text-gray-500 text-center">No categories found.</p>
+          <p className="text-gray-500 text-center">{t("app.noCategories")}</p>
         ) : (
           <>
             <div className="hidden md:block overflow-x-auto">
@@ -368,16 +369,16 @@ const Categories = ({ token }) => {
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-12"></th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                      Category Name
+                      {t("app.categoryName")}
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                      Parent Category
+                      {t("app.parentCategory")}
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                      Edit
+                      {t("app.edit")}
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                      Delete
+                      {t("app.delete")}
                     </th>
                   </tr>
                 </thead>
@@ -412,7 +413,7 @@ const Categories = ({ token }) => {
                                 value={editCategoryName}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
                                 type="text"
-                                placeholder="Edit category name"
+                                placeholder={t("app.editPlaceholder")}
                               />
                             ) : (
                               <span className="text-gray-800">
@@ -424,7 +425,7 @@ const Categories = ({ token }) => {
                             <span className="text-gray-600">
                               {category.parent
                                 ? category.parent.name
-                                : "No Parent"}
+                                : t("app.noParent")}
                             </span>
                           </td>
                           <td className="px-6 py-4">
@@ -554,7 +555,9 @@ const Categories = ({ token }) => {
                           )}
                         </div>
                         <p className="text-sm text-gray-500 mt-1">
-                          {category.parent ? category.parent.name : "No Parent"}
+                          {category.parent
+                            ? category.parent.name
+                            : t("app.noParent")}
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
@@ -567,7 +570,7 @@ const Categories = ({ token }) => {
                               value={editCategoryName}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors mb-2"
                               type="text"
-                              placeholder="Edit category name"
+                              placeholder={t("app.editPlaceholder")}
                             />
                             <div className="flex gap-2">
                               <button
@@ -628,7 +631,9 @@ const Categories = ({ token }) => {
                             <div>
                               <p className="text-sm font-medium">{sub.name}</p>
                               <p className="text-xs text-gray-500">
-                                {sub.parent ? sub.parent.name : "No Parent"}
+                                {sub.parent
+                                  ? sub.parent.name
+                                  : t("app.noParent")}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -642,13 +647,13 @@ const Categories = ({ token }) => {
                                 }}
                                 className="px-3 py-1 bg-indigo-600 text-white rounded text-xs"
                               >
-                                Edit
+                                {t("app.edit")}
                               </button>
                               <button
                                 onClick={() => openDeleteModal(sub)}
                                 className="px-3 py-1 bg-red-600 text-white rounded text-xs"
                               >
-                                Delete
+                                {t("app.delete")}
                               </button>
                             </div>
                           </div>
@@ -667,24 +672,23 @@ const Categories = ({ token }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Confirm Deletion
+              {t("app.confirmDeleteTitle")}
             </h3>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete the category "
-              {categoryToDelete?.name}"?
+              {t("app.confirmDeleteText", { name: categoryToDelete?.name })}
             </p>
             <div className="flex justify-end gap-4">
               <button
                 onClick={closeDeleteModal}
                 className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors"
               >
-                Cancel
+                {t("app.cancel")}
               </button>
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
-                Confirm
+                {t("app.confirm")}
               </button>
             </div>
           </div>

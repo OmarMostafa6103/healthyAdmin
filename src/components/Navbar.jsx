@@ -28,7 +28,7 @@
 
 import React from "react";
 import { useNavigate, Link } from "react-router-dom"; // استيراد useNavigate و Link للتوجيه
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 const Navbar = ({ setToken, setSidebarOpen, sidebarOpen }) => {
   const navigate = useNavigate();
@@ -43,6 +43,12 @@ const Navbar = ({ setToken, setSidebarOpen, sidebarOpen }) => {
 
   const setLanguage = (lng) => {
     i18n.changeLanguage(lng);
+    try {
+      localStorage.setItem("i18nextLng", lng);
+    } catch (e) {
+      // ignore
+    }
+    document.documentElement.dir = lng === "ar" ? "rtl" : "ltr";
   };
 
   return (
@@ -80,15 +86,25 @@ const Navbar = ({ setToken, setSidebarOpen, sidebarOpen }) => {
 
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <button onClick={() => setLanguage('en')} className="px-2 py-1 text-sm rounded hover:bg-gray-100">EN</button>
-          <button onClick={() => setLanguage('ar')} className="px-2 py-1 text-sm rounded hover:bg-gray-100">AR</button>
+          <button
+            onClick={() => setLanguage("en")}
+            className="px-2 py-1 text-sm rounded hover:bg-gray-100"
+          >
+            EN
+          </button>
+          <button
+            onClick={() => setLanguage("ar")}
+            className="px-2 py-1 text-sm rounded hover:bg-gray-100"
+          >
+            AR
+          </button>
         </div>
 
         <button
           onClick={handleLogout}
           className="bg-gray-600 text-white px-4 py-2 rounded-full text-xs sm:text-sm"
         >
-          {t ? t('nav.logout') : 'Logout'}
+          {t ? t("nav.logout") : "Logout"}
         </button>
       </div>
     </div>
